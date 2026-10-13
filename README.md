@@ -44,6 +44,14 @@ For development or building before the image is published, keep the entire sourc
 docker compose -f compose.build.yaml up -d --build
 ```
 
+## Browse large folders by genre
+
+The album area fills the main window with a compact grid. Albums are paged at 50, 100 or 200 per page; selections remain selected when changing pages or filters. The track view shows 100 tracks per page, including change previews, to keep large batch selections manageable.
+
+**Existing genres** lists every genre found in the scanned folder, with the number of albums containing it on at least one track. Click one or more genres to highlight matching albums. **Match any** matches at least one selected genre; **Match all** requires every selected genre somewhere on the album (the genres can appear on different tracks). Turn on **Only show matches** to hide other albums. Search genres separately from the album/artist search.
+
+**Select page** selects the displayed page. **Select all matching** selects every album matching the chosen genres and album search, across all pages. Genre highlights do not select albums for editing automatically. Existing album selections remain selected even when hidden by a filter; **Clear selection** resets them. Preview and Save use the selected albums and retain the existing batch add/remove/alias workflow. A single save supports up to 20,000 tracks.
+
 ## Genres and scanning
 
 Genres entered in the editor are separated by commas or semicolons. Each track keeps its other genres. Removing a name is case-insensitive; when a name is in both Add and Remove, Remove wins. Normalization uses explicit alias rules (`City Pop = Citypop, City-Pop`) and applies only to selected albums. Existing semicolon-separated genre values become separate values when an edit is applied. A slash stays part of the name.
@@ -71,6 +79,7 @@ Set `PUID`/`PGID` to the appropriate account in `.env`, then apply a configurati
 
 ```bash
 python -m unittest discover -s tests -v
+node --test tests/test_browser.cjs
 ```
 
 The Python server and file workflow can run without Docker for development:

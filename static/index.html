@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>genreSorter</title>
   <link rel="stylesheet" href="/style.css">
+  <script src="/browser-utils.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -15,10 +16,22 @@
   <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="identity"></span></div>
   <div id="requestError" class="error-banner hidden" role="alert"></div>
   <main>
-    <aside>
+    <aside class="library">
       <div class="section-title"><h2>Albums</h2><span id="albumCount" class="count">0</span></div>
       <input id="search" type="search" placeholder="Album, artist or genre" aria-label="Search albums">
-      <div class="selection-tools"><button id="selectVisible" class="text-button">Select visible</button><button id="clear" class="text-button">Clear</button><span id="selectedCount">0 selected</span></div>
+      <section class="genre-browser" aria-label="Genre filters">
+        <div class="section-title"><h2>Existing genres</h2><span id="genreCount" class="count">0</span></div>
+        <input id="genreSearch" type="search" placeholder="Find a genre" aria-label="Search existing genres">
+        <div id="genreTags" class="genre-tags" aria-label="Choose genres"></div>
+        <div class="filter-tools">
+          <label>Match <select id="genreMode"><option value="any">any selected genre</option><option value="all">all selected genres</option></select></label>
+          <label class="inline-toggle"><input id="onlyMatches" type="checkbox">Only show matches</label>
+          <button id="clearGenres" class="text-button">Clear genre filter</button>
+        </div>
+        <p id="matchSummary" class="hint" role="status">Click genres to highlight matching albums.</p>
+      </section>
+      <div class="selection-tools"><button id="selectVisible" class="text-button">Select page</button><button id="selectMatching" class="text-button" disabled>Select all matching</button><button id="clear" class="text-button">Clear selection</button><span id="selectedCount">0 selected</span></div>
+      <div class="pagination"><span id="albumRange" class="count"></span><label>Per page <select id="pageSize"><option value="50">50</option><option value="100" selected>100</option><option value="200">200</option></select></label><button id="previousPage">Previous</button><span id="pageNumber" class="count"></span><button id="nextPage">Next</button></div>
       <div id="albums" class="album-list"><p class="empty">Choose your music folder and scan its tags.</p></div>
     </aside>
     <section class="editor">
@@ -33,6 +46,7 @@
       <label class="alias-label">Canonical = Alias, Alias<textarea id="aliases" rows="4" spellcheck="false" disabled></textarea></label>
       <div class="actions"><button id="preview" class="primary" disabled>Preview changes</button><span id="changeCount"></span><button id="save" disabled>Save genres</button></div>
       <div class="track-heading"><h2 id="trackTitle">Current genres by track</h2></div>
+      <div class="pagination"><span id="trackRange" class="count"></span><button id="previousTracks">Previous</button><button id="nextTracks">Next</button></div>
       <div id="tracks" class="track-list"><p class="empty">Select albums to view their track genres.</p></div>
       <details id="errors" class="hidden"><summary id="errorSummary"></summary><div id="errorList"></div></details>
       <p id="cacheNote" class="hint"></p>

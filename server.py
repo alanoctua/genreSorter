@@ -339,9 +339,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond({"aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
             elif route.path == "/api/folders":
                 self.respond(self.server.library.folders(query.get("path", [""])[0]))
-            elif route.path in {"/", "/app.js", "/style.css"}:
-                name = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css"}[route.path]
-                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8"}[name]
+            elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css"}:
+                name = {"/": "index.html", "/app.js": "app.js", "/browser-utils.js": "browser-utils.js", "/style.css": "style.css"}[route.path]
+                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "browser-utils.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8"}[name]
                 self.respond((self.server.static / name).read_bytes(), content_type=kind)
             else:
                 raise Problem("Not found", 404)

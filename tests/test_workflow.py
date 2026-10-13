@@ -215,6 +215,10 @@ else: sys.exit(2)
             with self.assertRaises(HTTPError) as exc:
                 urlopen(base + "/api/state")
             self.assertEqual(exc.exception.code, 401)
+            with urlopen(Request(base + "/browser-utils.js", headers={"Authorization": auth})) as response:
+                self.assertEqual(response.status, 200)
+                self.assertIn("text/javascript", response.headers["Content-Type"])
+                self.assertIn(b"globalThis.GenreBrowser", response.read())
             for extra in [{}, {"X-GenreSorter-Request": "1", "Origin": "http://elsewhere.invalid"}]:
                 request = Request(base + "/api/scan", data=b'{}', headers={"Authorization": auth, "Content-Type": "application/json", **extra})
                 with self.assertRaises(HTTPError) as exc:

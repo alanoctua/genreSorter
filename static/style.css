@@ -70,3 +70,35 @@ dialog::backdrop { background:#14203c60; }
 @keyframes pulse { 50% { opacity:.25; } }
 @media(prefers-color-scheme:dark) { :root { --bg:#171c25; --panel:#202732; --ink:#e3e8f3; --muted:#98a3b5; --border:#313a49; --accent:#668bea; --select:#293651; --input:#1b222d; --danger:#ffa4a4; } .error-banner { background:#46262b; } }
 @media(max-width:800px) { header { padding:20px 16px; } .statusbar { padding:10px 16px; } #identity { display:none; } main { grid-template-columns:1fr; } aside { border-right:0; border-bottom:1px solid var(--border); } .album-list { max-height:300px; } .editor { padding:22px 18px; } .entry-grid { grid-template-columns:1fr; } header p { display:none; } h1 span { display:none; } }
+/* Dense album browser with bounded pages for large folders. */
+main { grid-template-columns:minmax(0,1fr) 410px; }
+aside.library { min-width:0; padding:20px; }
+.editor { padding:22px 20px; }
+.entry-grid { grid-template-columns:1fr; gap:12px; margin-top:16px; }
+.genre-browser { margin-top:18px; padding:14px; background:var(--panel); border:1px solid var(--border); border-radius:9px; }
+.genre-browser .section-title { margin-bottom:10px; }
+.genre-tags { display:flex; flex-wrap:wrap; align-content:flex-start; gap:6px; max-height:150px; overflow:auto; margin:12px 0; }
+.genre-tag { display:flex; align-items:center; gap:7px; padding:5px 9px; font-size:12px; border-radius:16px; }
+.genre-tag.active { background:var(--accent); color:white; border-color:var(--accent); }
+.genre-count { font-size:10px; opacity:.7; }
+.filter-tools { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.filter-tools label,.inline-toggle { display:flex; align-items:center; gap:6px; }
+select { color:var(--ink); background:var(--input); border:1px solid var(--border); border-radius:5px; padding:5px; font:inherit; }
+.pagination { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin:10px 0; font-size:11px; }
+.pagination > span:first-child { margin-right:auto; }
+.pagination label { display:flex; gap:5px; align-items:center; }
+.pagination button { padding:5px 9px; font-size:11px; }
+.selection-tools { flex-wrap:wrap; }
+.album-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:6px; max-height:65vh; align-content:start; }
+.album { min-width:0; padding:10px; color:var(--ink); }
+.album-info { flex:1; }
+.album-name { font-size:13px; }
+.album-meta,.album-genres { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
+.album-note { font-size:10px; }
+.album.genre-match { border-color:var(--accent); box-shadow:inset 4px 0 var(--accent); }
+.album.selected { background:var(--select); outline:1px solid var(--accent); }
+.album-list > .empty { grid-column:1/-1; }
+.actions { flex-wrap:wrap; }
+@media(min-width:1500px) { main { grid-template-columns:minmax(0,1fr) 460px; } }
+@media(max-width:1000px) { main { grid-template-columns:1fr; } aside.library { border-right:0; border-bottom:1px solid var(--border); } .entry-grid { grid-template-columns:1fr 1fr; } .album-list { max-height:60vh; } }
+@media(max-width:550px) { .entry-grid { grid-template-columns:1fr; } .album-list { grid-template-columns:1fr; } }
