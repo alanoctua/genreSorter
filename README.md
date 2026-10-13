@@ -1,6 +1,6 @@
 # genreSorter for Docker / OMV
 
-This source bundle is **v0.3.3**: the supplied app logo, artist grouping, coloured genres, genre filters, and Remove previous genres. The original PNG is used unchanged in the header. Browser icons are separately generated at 16px and 32px (PNG) plus a multi-size 16/32/48px ICO; the Apple touch icon is 180px. Resizing preserves the logo proportions and transparency with a square canvas. Icon URLs have a version query to refresh cached favicons. The app status bar displays the server version.
+This source bundle is **v0.3.4**: the supplied app logo, artist grouping, coloured genres, genre filters, and Remove previous genres. The original PNG is used unchanged in the header. Browser icons are separately generated at 16px and 32px (PNG) plus a multi-size 16/32/48px ICO; the Apple touch icon is 180px. Resizing preserves the logo proportions and transparency with a square canvas. Icon URLs have a version query to refresh cached favicons. The app status bar displays the server version.
 
 Browser app for viewing and bulk editing album genres. FLAC, MP3 and M4A supported. Choose a mounted music folder, scan, multi-select albums, add/remove genres or normalize aliases, preview every affected track, then Save genres. Saves modify genre tags on the chosen server files directly. The music library is not copied or re-encoded.
 
@@ -48,7 +48,7 @@ docker compose -f compose.build.yaml up -d --build
 
 ## Browse large folders by genre
 
-The album area fills the main window with a compact grid nested under collapsible artist headings. Artist groups use album artist when available, otherwise the track artist. Albums are paged at 50, 100 or 200 per page; selections remain selected when changing pages or filters. The track view shows 100 tracks per page, including change previews, to keep large batch selections manageable.
+The album area fills the main window with a compact grid nested under collapsible artist headings. Artist groups use album artist when available, otherwise the track artist. Each artist heading has a checkbox to select or deselect all scanned albums for that artist, including albums on other pages or hidden by a filter. A partially selected artist shows a mixed checkbox. Album, artist and track totals appear at the top. Albums are paged at 50, 100, 200 or 500 per page; selections remain selected when changing pages or filters. The track view shows 100 tracks per page, including change previews, to keep large batch selections manageable.
 
 **Existing genres** lists every genre found in the scanned folder, with the number of albums containing it on at least one track. Click one or more genres to highlight matching albums. **Match any** matches at least one selected genre; **Match all** requires every selected genre somewhere on the album (the genres can appear on different tracks). Turn on **Only show matches** to hide other albums. Search genres separately from the album/artist search.
 
@@ -68,7 +68,7 @@ Check **Remove previous genres** and enter the full replacement list in **New ge
 
 ## Confirm the update reached OMV
 
-Upload the updated `server.py`, `tags.py`, `static` folder, `tests` folder, and `README.md` at the existing repository root. Keep the working publishing workflow. Wait for the latest commit's publish job to finish successfully, then select this app in OMV Compose and use **Pull**, followed by **Up**. Refresh the app page; the status bar must display **v0.3.3**. Pull downloads an image; Up recreates the container with it. Restart alone can keep the old image.
+Upload the updated `server.py`, `tags.py`, `static` folder, `tests` folder, and `README.md` at the existing repository root. Keep the working publishing workflow. Wait for the latest commit's publish job to finish successfully, then select this app in OMV Compose and use **Pull**, followed by **Up**. Refresh the app page; the status bar must display **v0.3.4**. Pull downloads an image; Up recreates the container with it. Restart alone can keep the old image.
 
 If you see an older version (or no version), the new build has not reached the running app. If you see “Server version unknown”, the page and server files are from different builds. A full upload/build/pull/up resolves that mismatch. No music scan or tag save is required just to check the version.
 

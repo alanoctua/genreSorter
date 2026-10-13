@@ -80,7 +80,10 @@ function invalidate() {
   controls();
 }
 function renderAlbums() {
-  $('albumCount').textContent = state.albums.length.toLocaleString();
+  const artistGroups = browser.artists(state.albums);
+  const allArtists = new Map(artistGroups.map(artist => [artist.id, artist]));
+  const trackCount = state.albums.reduce((total, album) => total + album.count, 0);
+  $('albumCount').textContent = `${state.albums.length.toLocaleString()} albums · ${artistGroups.length.toLocaleString()} artists · ${trackCount.toLocaleString()} tracks`;
   const results = albumResults(), page = browser.page(results, albumPage, Number($('pageSize').value));
   albumPage = page.index;
   $('albumRange').textContent = results.length ? `${page.start + 1}–${page.start + page.items.length} of ${results.length.toLocaleString()}` : '0 albums';
@@ -91,16 +94,26 @@ function renderAlbums() {
   $('matchSummary').textContent = genreFilters.size ? `${matchCount.toLocaleString()} matching albums · ${genreFilters.size} genres selected. A genre on any track counts.` : 'Click genres to highlight matching albums.';
   $('selectMatching').disabled = !genreFilters.size || !matchCount;
   const fragment = document.createDocumentFragment();
-  const totals = new Map();
-  for (const album of results) {
-    const id = browser.key(album.artist.trim() || 'Unknown artist');
-    totals.set(id, (totals.get(id) || 0) + 1);
-  }
   for (const artist of browser.artists(page.items)) {
     const group = node('details', undefined, 'artist-group');
     group.open = !collapsedArtists.has(artist.id);
     const heading = node('summary', undefined, 'artist-heading');
-    heading.append(node('span', artist.name, 'artist-name'), node('span', `${artist.albums.length} on page · ${totals.get(artist.id)} albums`, 'count'));
+    const members = allArtists.get(artist.id).albums;
+    const artistCheckbox = node('input', undefined, 'artist-checkbox'); artistCheckbox.type = 'checkbox';
+    artistCheckbox.setAttribute('aria-label', `Select all ${members.length} albums by ${artist.name}`);
+    artistCheckbox.title = `Select or deselect all ${members.length} scanned albums by ${artist.name}, including other pages and filtered albums`;
+    function syncArtistCheckbox() {
+      const count = members.reduce((total, album) => total + Number(selected.has(album.id)), 0);
+      artistCheckbox.checked = count === members.length;
+      artistCheckbox.indeterminate = count > 0 && count < members.length;
+    }
+    syncArtistCheckbox();
+    artistCheckbox.addEventListener('click', event => event.stopPropagation());
+    artistCheckbox.addEventListener('change', () => {
+      for (const album of members) artistCheckbox.checked ? selected.add(album.id) : selected.delete(album.id);
+      trackPage = 0; invalidate(); renderAlbums(); renderTracks();
+    });
+    heading.append(artistCheckbox, node('span', artist.name, 'artist-name'), node('span', `${artist.albums.length} on page · ${members.length} total albums`, 'count'));
     group.append(heading);
     const grid = node('div', undefined, 'artist-albums');
     for (const album of artist.albums) {
@@ -110,7 +123,7 @@ function renderAlbums() {
     checkbox.setAttribute('aria-label', `Select ${album.name} by ${album.artist}`);
     checkbox.addEventListener('change', () => {
       checkbox.checked ? selected.add(album.id) : selected.delete(album.id);
-      label.classList.toggle('selected', checkbox.checked);
+      label.classList.toggle('selected', checkbox.checked); syncArtistCheckbox();
       trackPage = 0; invalidate(); renderTracks(); controls();
     });
     const info = node('div', undefined, 'album-info');

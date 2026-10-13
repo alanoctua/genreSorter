@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import tags
 
-APP_VERSION = "0.3.3"
+APP_VERSION = "0.3.4"
 
 
 class Problem(Exception):

@@ -55,3 +55,12 @@ test('genre colours stay stable across name case/spacing and span the colour whe
   assert.ok(hues.every(hue => Number.isFinite(hue) && hue >= 0 && hue <= 360));
   assert.ok(Math.max(...hues) - Math.min(...hues) > 180);
 });
+
+test('500 album pages retain all results including the final partial page', () => {
+  const many = Array.from({length:1201}, (_, id) => ({id}));
+  const first = browser.page(many, 0, 500), second = browser.page(many, 1, 500), last = browser.page(many, 2, 500);
+  assert.equal(first.items.length, 500);
+  assert.equal(second.items.length, 500);
+  assert.equal(last.items.length, 201);
+  assert.deepEqual([...first.items, ...second.items, ...last.items].map(a=>a.id), many.map(a=>a.id));
+});
