@@ -14,7 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import tags
 
-APP_VERSION = "0.3.2"
+APP_VERSION = "0.3.3"
 
 
 class Problem(Exception):
@@ -341,9 +341,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond({"version": APP_VERSION, "aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
             elif route.path == "/api/folders":
                 self.respond(self.server.library.folders(query.get("path", [""])[0]))
-            elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css", "/logo.png"}:
-                name = {"/": "index.html", "/app.js": "app.js", "/browser-utils.js": "browser-utils.js", "/style.css": "style.css", "/logo.png": "logo.png"}[route.path]
-                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "browser-utils.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8", "logo.png": "image/png"}[name]
+            elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css", "/logo.png", "/favicon.ico", "/favicon-16x16.png", "/favicon-32x32.png", "/apple-touch-icon.png"}:
+                name = {"/": "index.html", "/app.js": "app.js", "/browser-utils.js": "browser-utils.js", "/style.css": "style.css", "/logo.png": "logo.png", "/favicon.ico": "favicon.ico", "/favicon-16x16.png": "favicon-16x16.png", "/favicon-32x32.png": "favicon-32x32.png", "/apple-touch-icon.png": "apple-touch-icon.png"}[route.path]
+                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "browser-utils.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8", "logo.png": "image/png", "favicon.ico": "image/vnd.microsoft.icon", "favicon-16x16.png": "image/png", "favicon-32x32.png": "image/png", "apple-touch-icon.png": "image/png"}[name]
                 self.respond((self.server.static / name).read_bytes(), content_type=kind)
             else:
                 raise Problem("Not found", 404)

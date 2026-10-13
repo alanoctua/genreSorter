@@ -1,6 +1,6 @@
 # genreSorter for Docker / OMV
 
-This source bundle is **v0.3.2**: the supplied app logo, artist grouping, coloured genres, genre filters, and Remove previous genres. The original PNG is used unchanged in the header and browser icon. The app status bar displays the server version.
+This source bundle is **v0.3.3**: the supplied app logo, artist grouping, coloured genres, genre filters, and Remove previous genres. The original PNG is used unchanged in the header. Browser icons are separately generated at 16px and 32px (PNG) plus a multi-size 16/32/48px ICO; the Apple touch icon is 180px. Resizing preserves the logo proportions and transparency with a square canvas. Icon URLs have a version query to refresh cached favicons. The app status bar displays the server version.
 
 Browser app for viewing and bulk editing album genres. FLAC, MP3 and M4A supported. Choose a mounted music folder, scan, multi-select albums, add/remove genres or normalize aliases, preview every affected track, then Save genres. Saves modify genre tags on the chosen server files directly. The music library is not copied or re-encoded.
 
@@ -68,7 +68,7 @@ Check **Remove previous genres** and enter the full replacement list in **New ge
 
 ## Confirm the update reached OMV
 
-Upload the updated `server.py`, `tags.py`, `static` folder, `tests` folder, and `README.md` at the existing repository root. Keep the working publishing workflow. Wait for the latest commit's publish job to finish successfully, then select this app in OMV Compose and use **Pull**, followed by **Up**. Refresh the app page; the status bar must display **v0.3.2**. Pull downloads an image; Up recreates the container with it. Restart alone can keep the old image.
+Upload the updated `server.py`, `tags.py`, `static` folder, `tests` folder, and `README.md` at the existing repository root. Keep the working publishing workflow. Wait for the latest commit's publish job to finish successfully, then select this app in OMV Compose and use **Pull**, followed by **Up**. Refresh the app page; the status bar must display **v0.3.3**. Pull downloads an image; Up recreates the container with it. Restart alone can keep the old image.
 
 If you see an older version (or no version), the new build has not reached the running app. If you see “Server version unknown”, the page and server files are from different builds. A full upload/build/pull/up resolves that mismatch. No music scan or tag save is required just to check the version.
 

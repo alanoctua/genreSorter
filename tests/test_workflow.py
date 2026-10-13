@@ -254,6 +254,11 @@ else: sys.exit(2)
             with urlopen(Request(base + "/logo.png", headers={"Authorization": auth})) as response:
                 self.assertEqual(response.headers["Content-Type"], "image/png")
                 self.assertEqual(response.read(), (Path(__file__).resolve().parents[1] / "static/logo.png").read_bytes())
+            for asset, mime in [("favicon.ico", "image/vnd.microsoft.icon"), ("favicon-16x16.png", "image/png"),
+                                ("favicon-32x32.png", "image/png"), ("apple-touch-icon.png", "image/png")]:
+                with urlopen(Request(base + "/" + asset + "?v=0.3.3", headers={"Authorization": auth})) as response:
+                    self.assertEqual(response.headers["Content-Type"], mime)
+                    self.assertEqual(response.read(), (Path(__file__).resolve().parents[1] / "static" / asset).read_bytes())
             with urlopen(Request(base + "/api/config", headers={"Authorization": auth})) as response:
                 self.assertEqual(json.load(response)["version"], server.APP_VERSION)
             for extra in [{}, {"X-GenreSorter-Request": "1", "Origin": "http://elsewhere.invalid"}]:
