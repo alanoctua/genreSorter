@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>genreSorter</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div><h1>genreSorter<span>server</span></h1><p>View and amend your music genres</p></div>
+    <div class="toolbar"><button id="chooseFolder">Choose folder</button><button id="scan" class="primary" title="Shift-click to reread every tag">Scan music</button></div>
+  </header>
+  <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="identity"></span></div>
+  <div id="requestError" class="error-banner hidden" role="alert"></div>
+  <main>
+    <aside>
+      <div class="section-title"><h2>Albums</h2><span id="albumCount" class="count">0</span></div>
+      <input id="search" type="search" placeholder="Album, artist or genre" aria-label="Search albums">
+      <div class="selection-tools"><button id="selectVisible" class="text-button">Select visible</button><button id="clear" class="text-button">Clear</button><span id="selectedCount">0 selected</span></div>
+      <div id="albums" class="album-list"><p class="empty">Choose your music folder and scan its tags.</p></div>
+    </aside>
+    <section class="editor">
+      <div class="section-title"><h2>Bulk edit</h2><span id="folderLabel" class="folder-label">/music</span></div>
+      <p class="muted">Each track keeps its own genres. Preview your changes before saving.</p>
+      <div class="entry-grid">
+        <label>Add genres<input id="add" type="text" placeholder="Japanese Jazz, City Pop" autocomplete="off"></label>
+        <label>Remove genres<input id="remove" type="text" placeholder="Jazz, Unknown" autocomplete="off"></label>
+      </div>
+      <p class="hint">Separate several genres with commas or semicolons.</p>
+      <label class="toggle"><input id="normalize" type="checkbox">Normalize aliases on selected albums</label>
+      <label class="alias-label">Canonical = Alias, Alias<textarea id="aliases" rows="4" spellcheck="false" disabled></textarea></label>
+      <div class="actions"><button id="preview" class="primary" disabled>Preview changes</button><span id="changeCount"></span><button id="save" disabled>Save genres</button></div>
+      <div class="track-heading"><h2 id="trackTitle">Current genres by track</h2></div>
+      <div id="tracks" class="track-list"><p class="empty">Select albums to view their track genres.</p></div>
+      <details id="errors" class="hidden"><summary id="errorSummary"></summary><div id="errorList"></div></details>
+      <p id="cacheNote" class="hint"></p>
+    </section>
+  </main>
+  <dialog id="folderDialog">
+    <div class="section-title"><h2>Music folder</h2><button id="closeFolder" aria-label="Close folder browser">Close</button></div>
+    <p id="browsePath" class="muted">/music</p>
+    <div class="toolbar"><button id="rootFolder">Music root</button><button id="upFolder">Up</button></div>
+    <div id="folders" class="folder-list"></div>
+    <div class="dialog-actions"><button id="useFolder" class="primary">Scan this folder</button></div>
+  </dialog>
+</body>
+</html>
