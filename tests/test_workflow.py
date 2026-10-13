@@ -145,6 +145,38 @@ class Workflow(unittest.TestCase):
         self.assertIn("Tags changed", result["last_write"]["errors"][0]["error"])
         self.assertEqual(tags.metadata(path)["genres"], ["Funk"])
 
+    def test_replace_previous_genres_and_clear_use_preview_and_preserve_other_data(self):
+        tags.write_genres(self.paths[0], ["Old Genre", "Other Old Genre"])
+        state = self.scan()
+        before = {path: (other_tags(path), audio_hash(path)) for path in self.paths}
+        checksums = [hashlib.sha256(path.read_bytes()).hexdigest() for path in self.paths]
+        selected = [state["albums"][0]["id"]]
+        plan = self.library.preview({"albums": selected, "add": "Citypop, Japanese Jazz", "remove": "City Pop", "replace": True,
+                                     "normalize": True, "aliases": "City Pop = Citypop"})
+        self.assertEqual(plan["count"], 3)
+        self.assertTrue(all(row["after"] == ["City Pop", "Japanese Jazz"] for row in plan["changes"]))
+        self.assertEqual([hashlib.sha256(path.read_bytes()).hexdigest() for path in self.paths], checksums)
+        self.library.write(plan["token"])
+        self.assertEqual(wait(self.library)["last_write"]["written"], 3)
+        for path in self.paths:
+            self.assertEqual(tags.metadata(path)["genres"], ["City Pop", "Japanese Jazz"])
+            self.assertEqual((other_tags(path), audio_hash(path)), before[path])
+        clear = self.library.preview({"albums": selected, "replace": True})
+        self.assertTrue(all(row["after"] == [] for row in clear["changes"]))
+        self.library.write(clear["token"])
+        self.assertEqual(wait(self.library)["last_write"]["written"], 3)
+        for path in self.paths:
+            self.assertEqual(tags.metadata(path)["genres"], [])
+            self.assertEqual((other_tags(path), audio_hash(path)), before[path])
+
+    def test_replacement_must_be_boolean_and_does_not_change_normal_add_behavior(self):
+        self.assertEqual(tags.Rules("New", replace=True).apply(["Old", "Unexpected"]), ["New"])
+        self.assertEqual(tags.Rules("New").apply(["Old"]), ["Old", "New"])
+        self.assertTrue(tags.Rules(replace=True).has_action)
+        self.assertEqual(tags.Rules(replace=True).apply(["Old"]), [])
+        with self.assertRaises(ValueError):
+            tags.Rules("New", replace="false")
+
     def test_cache_reuses_unchanged_tags_after_restart(self):
         self.scan()
         restarted = server.Library(self.root, self.base / "cache")

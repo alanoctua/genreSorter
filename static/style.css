@@ -102,3 +102,11 @@ select { color:var(--ink); background:var(--input); border:1px solid var(--borde
 @media(min-width:1500px) { main { grid-template-columns:minmax(0,1fr) 460px; } }
 @media(max-width:1000px) { main { grid-template-columns:1fr; } aside.library { border-right:0; border-bottom:1px solid var(--border); } .entry-grid { grid-template-columns:1fr 1fr; } .album-list { max-height:60vh; } }
 @media(max-width:550px) { .entry-grid { grid-template-columns:1fr; } .album-list { grid-template-columns:1fr; } }
+.album-list { display:block; }
+.artist-group { color:var(--ink); margin:0 0 12px; border:1px solid var(--border); border-radius:9px; background:var(--panel); }
+.artist-heading { padding:12px 14px; color:var(--ink); }
+.artist-name { font-size:14px; font-weight:650; margin-right:12px; }
+.artist-heading .count { font-size:11px; }
+.artist-albums { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:6px; padding:4px 12px 12px; }
+input:disabled { opacity:.45; }
+@media(max-width:550px) { .artist-albums { grid-template-columns:1fr; } }

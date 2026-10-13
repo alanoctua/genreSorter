@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 let state = {albums: [], warnings: [], revision: -1, generation: -1, busy: false, folder: ''};
 let selected = new Set(), plan = null, pending = false, browsing = '';
 let genreFilters = new Set(), genreCatalog = [], albumPage = 0, trackPage = 0;
+const collapsedArtists = new Set();
 const browser = GenreBrowser;
 function matching(album) { return browser.matches(album, genreFilters, $('genreMode').value); }
 function albumResults() { return browser.filter(state.albums, $('search').value, genreFilters, $('genreMode').value, $('onlyMatches').checked); }
@@ -73,7 +74,19 @@ function renderAlbums() {
   $('matchSummary').textContent = genreFilters.size ? `${matchCount.toLocaleString()} matching albums · ${genreFilters.size} genres selected. A genre on any track counts.` : 'Click genres to highlight matching albums.';
   $('selectMatching').disabled = !genreFilters.size || !matchCount;
   const fragment = document.createDocumentFragment();
-  for (const album of page.items) {
+  const totals = new Map();
+  for (const album of results) {
+    const id = browser.key(album.artist.trim() || 'Unknown artist');
+    totals.set(id, (totals.get(id) || 0) + 1);
+  }
+  for (const artist of browser.artists(page.items)) {
+    const group = node('details', undefined, 'artist-group');
+    group.open = !collapsedArtists.has(artist.id);
+    const heading = node('summary', undefined, 'artist-heading');
+    heading.append(node('span', artist.name, 'artist-name'), node('span', `${artist.albums.length} on page · ${totals.get(artist.id)} albums`, 'count'));
+    group.append(heading);
+    const grid = node('div', undefined, 'artist-albums');
+    for (const album of artist.albums) {
     const isMatch = genreFilters.size && matching(album);
     const label = node('label', undefined, `album${selected.has(album.id) ? ' selected' : ''}${isMatch ? ' genre-match' : ''}`);
     const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.checked = selected.has(album.id);
@@ -89,7 +102,14 @@ function renderAlbums() {
     const genres = node('div', genreText(album.genres), 'album-genres'); genres.title = genreText(album.genres); info.append(genres);
     if (album.mixed) info.append(node('div', 'Mixed track genres', 'album-note'));
     if (album.readonly_count) info.append(node('div', `${album.readonly_count} files need write permission`, 'album-note'));
-    label.append(checkbox, info); fragment.append(label);
+    label.append(checkbox, info); grid.append(label);
+    }
+    group.append(grid);
+    group.addEventListener('toggle', () => {
+      if (!group.isConnected) return;
+      group.open ? collapsedArtists.delete(artist.id) : collapsedArtists.add(artist.id);
+    });
+    fragment.append(group);
   }
   if (!page.items.length) fragment.append(node('p', state.albums.length ? 'No matching albums.' : 'Choose your music folder and scan its tags.', 'empty'));
   $('albums').replaceChildren(fragment);
@@ -124,7 +144,7 @@ async function refresh() {
   const next = await api(`/api/state?since=${state.revision}`);
   const changed = !next.unchanged;
   if (next.generation !== state.generation) plan = null;
-  if (next.folder !== state.folder) { selected.clear(); genreFilters.clear(); albumPage = 0; trackPage = 0; }
+  if (next.folder !== state.folder) { selected.clear(); genreFilters.clear(); collapsedArtists.clear(); albumPage = 0; trackPage = 0; }
   state = {...state, ...next};
   if (!state.busy) {
     const available = new Set(state.albums.map(album => album.id));
@@ -178,11 +198,18 @@ $('selectMatching').addEventListener('click', () => { albumResults().filter(matc
 $('selectVisible').addEventListener('click', () => { visible().forEach(album => selected.add(album.id)); trackPage = 0; invalidate(); renderAlbums(); renderTracks(); });
 $('clear').addEventListener('click', () => { selected.clear(); trackPage = 0; invalidate(); renderAlbums(); renderTracks(); });
 for (const id of ['add', 'remove', 'aliases']) $(id).addEventListener('input', invalidate);
+$('replaceGenres').addEventListener('change', () => {
+  const replace = $('replaceGenres').checked;
+  $('remove').disabled = replace;
+  $('addLabel').textContent = replace ? 'New genres' : 'Add genres';
+  $('replaceHelp').textContent = replace ? 'Checked: delete every old genre and use only the new genres above. Leave New genres empty to clear all genres. Preview before saving.' : 'Unchecked: keep each track’s current genres and add or remove specific names.';
+  invalidate();
+});
 $('normalize').addEventListener('change', () => { $('aliases').disabled = !$('normalize').checked; invalidate(); });
 $('preview').addEventListener('click', async () => {
   error(''); pending = true; controls();
   try {
-    plan = await api('/api/preview', {albums: [...selected], add: $('add').value, remove: $('remove').value, normalize: $('normalize').checked, aliases: $('aliases').value});
+    plan = await api('/api/preview', {albums: [...selected], add: $('add').value, remove: $('remove').value, replace: $('replaceGenres').checked, normalize: $('normalize').checked, aliases: $('aliases').value});
     trackPage = 0; renderTracks();
   } catch (exc) { plan = null; error(exc.message); renderTracks(); }
   finally { pending = false; controls(); }

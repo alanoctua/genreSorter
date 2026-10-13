@@ -36,14 +36,17 @@
     </aside>
     <section class="editor">
       <div class="section-title"><h2>Bulk edit</h2><span id="folderLabel" class="folder-label">/music</span></div>
-      <p class="muted">Each track keeps its own genres. Preview your changes before saving.</p>
+      <p class="muted">Edit selected albums. Preview every track before saving.</p>
       <div class="entry-grid">
-        <label>Add genres<input id="add" type="text" placeholder="Japanese Jazz, City Pop" autocomplete="off"></label>
+        <label><span id="addLabel">Add genres</span><input id="add" type="text" placeholder="Japanese Jazz, City Pop" autocomplete="off"></label>
         <label>Remove genres<input id="remove" type="text" placeholder="Jazz, Unknown" autocomplete="off"></label>
       </div>
       <p class="hint">Separate several genres with commas or semicolons.</p>
-      <label class="toggle"><input id="normalize" type="checkbox">Normalize aliases on selected albums</label>
-      <label class="alias-label">Canonical = Alias, Alias<textarea id="aliases" rows="4" spellcheck="false" disabled></textarea></label>
+      <label class="toggle"><input id="replaceGenres" type="checkbox">Remove previous genres</label>
+      <p id="replaceHelp" class="hint">Unchecked: keep each track’s current genres and add or remove specific names.</p>
+      <label class="toggle"><input id="normalize" type="checkbox">Normalize genre names on selected albums</label>
+      <p class="hint">Rules below replace alternative spellings with one preferred name. For example, <strong>City Pop = Citypop, City-Pop</strong> changes Citypop and City-Pop to City Pop. Other names stay as they are. Preview shows the results.</p>
+      <label class="alias-label">Preferred name = Alternative name, Alternative name<textarea id="aliases" rows="4" spellcheck="false" disabled></textarea></label>
       <div class="actions"><button id="preview" class="primary" disabled>Preview changes</button><span id="changeCount"></span><button id="save" disabled>Save genres</button></div>
       <div class="track-heading"><h2 id="trackTitle">Current genres by track</h2></div>
       <div class="pagination"><span id="trackRange" class="count"></span><button id="previousTracks">Previous</button><button id="nextTracks">Next</button></div>

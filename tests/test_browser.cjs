@@ -36,3 +36,13 @@ test('20,000 albums page in bounded groups and page clamps when filters reduce r
   assert.equal(last.items.at(-1).id, 19999);
   assert.equal(browser.page([], 12, 100).index, 0);
 });
+
+// Group after filtering/paging so large artist discographies stay bounded.
+test('albums nest under artist groups while retaining each album identity', () => {
+  const input = [albums[0], {...albums[1], artist: 'Artist A'}, albums[2], {...albums[0], id: 'unknown', artist: ''}];
+  const groups = browser.artists(input);
+  assert.equal(groups.length, 3);
+  assert.deepEqual(groups[0].albums.map(a => a.id), ['a', 'b']);
+  assert.equal(groups.at(-1).name, 'Unknown artist');
+  assert.equal(browser.artists(browser.filter(input, 'Second', new Set(), 'any', false))[0].albums[0].id, 'b');
+});

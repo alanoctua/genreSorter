@@ -30,7 +30,16 @@
     index = Math.max(0, Math.min(index, pages - 1));
     return {index, pages, start: index * size, items: items.slice(index * size, (index + 1) * size)};
   }
-  const utilities = {key, catalog, matches, filter, page};
+  function artists(albums) {
+    const groups = new Map();
+    for (const album of albums) {
+      const name = album.artist.trim() || 'Unknown artist', id = key(name);
+      if (!groups.has(id)) groups.set(id, {id, name, albums: []});
+      groups.get(id).albums.push(album);
+    }
+    return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  const utilities = {key, catalog, matches, filter, page, artists};
   if (typeof module !== 'undefined' && module.exports) module.exports = utilities;
   else globalThis.GenreBrowser = utilities;
 })();

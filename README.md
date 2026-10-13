@@ -46,11 +46,17 @@ docker compose -f compose.build.yaml up -d --build
 
 ## Browse large folders by genre
 
-The album area fills the main window with a compact grid. Albums are paged at 50, 100 or 200 per page; selections remain selected when changing pages or filters. The track view shows 100 tracks per page, including change previews, to keep large batch selections manageable.
+The album area fills the main window with a compact grid nested under collapsible artist headings. Artist groups use album artist when available, otherwise the track artist. Albums are paged at 50, 100 or 200 per page; selections remain selected when changing pages or filters. The track view shows 100 tracks per page, including change previews, to keep large batch selections manageable.
 
 **Existing genres** lists every genre found in the scanned folder, with the number of albums containing it on at least one track. Click one or more genres to highlight matching albums. **Match any** matches at least one selected genre; **Match all** requires every selected genre somewhere on the album (the genres can appear on different tracks). Turn on **Only show matches** to hide other albums. Search genres separately from the album/artist search.
 
 **Select page** selects the displayed page. **Select all matching** selects every album matching the chosen genres and album search, across all pages. Genre highlights do not select albums for editing automatically. Existing album selections remain selected even when hidden by a filter; **Clear selection** resets them. Preview and Save use the selected albums and retain the existing batch add/remove/alias workflow. A single save supports up to 20,000 tracks.
+
+## Replace all previous genres
+
+Check **Remove previous genres** and enter the full replacement list in **New genres**. Every selected track loses all of its previous genres and receives only that list. The Remove names field is disabled and ignored in this mode. Leaving New genres empty clears every genre from selected tracks. Unchecking the option restores the normal add/remove behavior. Nothing is written until Preview and Save.
+
+**Normalize genre names** uses the editable rules below it. A line such as `City Pop = Citypop, City-Pop` turns the names on the right into the preferred name on the left. It does not infer genres from audio. Names outside these rules stay as they are (apart from trimming whitespace and removing duplicates). With replacement enabled, normalization applies to the new names only. Every result is shown in Preview.
 
 ## Genres and scanning
 

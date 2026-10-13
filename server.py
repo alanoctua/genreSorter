@@ -206,7 +206,7 @@ class Library:
         if not isinstance(selected, list) or not selected or len(selected) > 10000 or any(not isinstance(s, str) for s in selected):
             raise Problem("Select at least one album")
         rules = tags.Rules(payload.get("add", ""), payload.get("remove", ""),
-                           payload.get("normalize", False), payload.get("aliases", ""))
+                           payload.get("normalize", False), payload.get("aliases", ""), payload.get("replace", False))
         if not rules.has_action:
             raise Problem("Enter genres to add/remove or enable alias normalization")
         chosen = set(selected)

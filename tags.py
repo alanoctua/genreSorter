@@ -44,9 +44,12 @@ def valid_genre(value):
 
 
 class Rules:
-    def __init__(self, add="", remove="", normalize=False, aliases=""):
+    def __init__(self, add="", remove="", normalize=False, aliases="", replace=False):
+        if not isinstance(replace, bool):
+            raise ValueError("Remove previous genres must be true or false")
+        self.replace = replace
         self.add = [valid_genre(s) for s in entries(add)]
-        self.remove = [valid_genre(s) for s in entries(remove)]
+        self.remove = [] if self.replace else [valid_genre(s) for s in entries(remove)]
         if len(self.add) + len(self.remove) > 100:
             raise ValueError("Use at most 100 genre names per edit")
         self.normalize = bool(normalize)
@@ -78,7 +81,7 @@ class Rules:
 
     def apply(self, current):
         removed = {key(self.canonical(s)) for s in self.remove}
-        existing = [self.canonical(s) for raw in current for s in raw.split(";")]
+        existing = [] if self.replace else [self.canonical(s) for raw in current for s in raw.split(";")]
         proposed = unique(s for s in existing + [self.canonical(s) for s in self.add]
                           if s and key(s) not in removed)
         if len(proposed) > 100:
@@ -87,7 +90,7 @@ class Rules:
 
     @property
     def has_action(self):
-        return bool(self.add or self.remove or self.normalize)
+        return bool(self.replace or self.add or self.remove or self.normalize)
 
 
 def stamp(path):
