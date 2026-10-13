@@ -14,6 +14,8 @@ from urllib.parse import parse_qs, urlsplit
 
 import tags
 
+APP_VERSION = "0.3.2"
+
 
 class Problem(Exception):
     def __init__(self, message, status=400):
@@ -336,12 +338,12 @@ class Handler(BaseHTTPRequestHandler):
             if route.path == "/api/state":
                 self.respond(self.server.library.snapshot(query.get("since", [None])[0]))
             elif route.path == "/api/config":
-                self.respond({"aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
+                self.respond({"version": APP_VERSION, "aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
             elif route.path == "/api/folders":
                 self.respond(self.server.library.folders(query.get("path", [""])[0]))
-            elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css"}:
-                name = {"/": "index.html", "/app.js": "app.js", "/browser-utils.js": "browser-utils.js", "/style.css": "style.css"}[route.path]
-                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "browser-utils.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8"}[name]
+            elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css", "/logo.png"}:
+                name = {"/": "index.html", "/app.js": "app.js", "/browser-utils.js": "browser-utils.js", "/style.css": "style.css", "/logo.png": "logo.png"}[route.path]
+                kind = {"index.html": "text/html; charset=utf-8", "app.js": "text/javascript; charset=utf-8", "browser-utils.js": "text/javascript; charset=utf-8", "style.css": "text/css; charset=utf-8", "logo.png": "image/png"}[name]
                 self.respond((self.server.static / name).read_bytes(), content_type=kind)
             else:
                 raise Problem("Not found", 404)

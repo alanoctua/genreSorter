@@ -239,7 +239,7 @@ $('save').addEventListener('click', async () => {
   finally { pending = false; controls(); }
 });
 (async () => {
-  try { const config = await api('/api/config'); $('aliases').value = config.aliases; $('identity').textContent = `Server user: UID ${config.uid} · GID ${config.gid}`; }
+  try { const config = await api('/api/config'); $('buildVersion').textContent = config.version ? `v${config.version}` : 'Server version unknown'; $('aliases').value = config.aliases; $('identity').textContent = `Server user: UID ${config.uid} · GID ${config.gid}`; }
   catch (exc) { error(exc.message); }
   polling();
 })();

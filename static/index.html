@@ -4,16 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>genreSorter</title>
+  <link rel="icon" type="image/png" href="/logo.png">
+  <link rel="apple-touch-icon" href="/logo.png">
   <link rel="stylesheet" href="/style.css">
   <script src="/browser-utils.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
   <header>
-    <div><h1>genreSorter<span>server</span></h1><p>View and amend your music genres</p></div>
+    <div class="brand"><img class="app-logo" src="/logo.png" alt="" width="64" height="64"><div><h1>genreSorter<span>server</span></h1><p>View and amend your music genres</p></div></div>
     <div class="toolbar"><button id="chooseFolder">Choose folder</button><button id="scan" class="primary" title="Shift-click to reread every tag">Scan music</button></div>
   </header>
-  <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="identity"></span></div>
+  <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="buildVersion" class="count">v0.3.2</span><span id="identity"></span></div>
   <div id="requestError" class="error-banner hidden" role="alert"></div>
   <main>
     <aside class="library">

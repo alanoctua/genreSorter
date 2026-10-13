@@ -1,5 +1,7 @@
 # genreSorter for Docker / OMV
 
+This source bundle is **v0.3.2**: the supplied app logo, artist grouping, coloured genres, genre filters, and Remove previous genres. The original PNG is used unchanged in the header and browser icon. The app status bar displays the server version.
+
 Browser app for viewing and bulk editing album genres. FLAC, MP3 and M4A supported. Choose a mounted music folder, scan, multi-select albums, add/remove genres or normalize aliases, preview every affected track, then Save genres. Saves modify genre tags on the chosen server files directly. The music library is not copied or re-encoded.
 
 ## Install the published image on OMV
@@ -63,6 +65,12 @@ Colours currently do **not** represent musical similarity. Nearby colours can oc
 Check **Remove previous genres** and enter the full replacement list in **New genres**. Every selected track loses all of its previous genres and receives only that list. The Remove names field is disabled and ignored in this mode. Leaving New genres empty clears every genre from selected tracks. Unchecking the option restores the normal add/remove behavior. Nothing is written until Preview and Save.
 
 **Normalize genre names** uses the editable rules below it. A line such as `City Pop = Citypop, City-Pop` turns the names on the right into the preferred name on the left. It does not infer genres from audio. Names outside these rules stay as they are (apart from trimming whitespace and removing duplicates). With replacement enabled, normalization applies to the new names only. Every result is shown in Preview.
+
+## Confirm the update reached OMV
+
+Upload the updated `server.py`, `tags.py`, `static` folder, `tests` folder, and `README.md` at the existing repository root. Keep the working publishing workflow. Wait for the latest commit's publish job to finish successfully, then select this app in OMV Compose and use **Pull**, followed by **Up**. Refresh the app page; the status bar must display **v0.3.2**. Pull downloads an image; Up recreates the container with it. Restart alone can keep the old image.
+
+If you see an older version (or no version), the new build has not reached the running app. If you see “Server version unknown”, the page and server files are from different builds. A full upload/build/pull/up resolves that mismatch. No music scan or tag save is required just to check the version.
 
 ## Genres and scanning
 

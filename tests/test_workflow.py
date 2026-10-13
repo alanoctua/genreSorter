@@ -251,6 +251,11 @@ else: sys.exit(2)
                 self.assertEqual(response.status, 200)
                 self.assertIn("text/javascript", response.headers["Content-Type"])
                 self.assertIn(b"globalThis.GenreBrowser", response.read())
+            with urlopen(Request(base + "/logo.png", headers={"Authorization": auth})) as response:
+                self.assertEqual(response.headers["Content-Type"], "image/png")
+                self.assertEqual(response.read(), (Path(__file__).resolve().parents[1] / "static/logo.png").read_bytes())
+            with urlopen(Request(base + "/api/config", headers={"Authorization": auth})) as response:
+                self.assertEqual(json.load(response)["version"], server.APP_VERSION)
             for extra in [{}, {"X-GenreSorter-Request": "1", "Origin": "http://elsewhere.invalid"}]:
                 request = Request(base + "/api/scan", data=b'{}', headers={"Authorization": auth, "Content-Type": "application/json", **extra})
                 with self.assertRaises(HTTPError) as exc:

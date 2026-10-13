@@ -122,3 +122,7 @@ input:disabled { opacity:.45; }
 .genre-line { display:flex; flex-wrap:wrap; align-items:center; gap:3px; }
 .no-genres { color:var(--muted); }
 @media(prefers-color-scheme:dark) { .genre-colour { --genre-tone:hsl(var(--genre-hue) 64% 70%); --genre-tint:hsl(var(--genre-hue) 28% 22%); --genre-border:hsl(var(--genre-hue) 30% 38%); } }
+
+.brand { display:flex; align-items:center; gap:14px; min-width:0; }
+.app-logo { display:block; width:64px; height:64px; object-fit:contain; flex-shrink:0; }
+@media(max-width:600px) { header { flex-wrap:wrap; } .app-logo { width:48px; height:48px; } .brand { gap:10px; } }
