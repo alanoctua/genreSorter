@@ -14,9 +14,10 @@ function renderGenreTags() {
   for (const genre of genreCatalog.filter(genre => browser.key(genre.name).includes(query))) {
     const button = node('button', undefined, `genre-tag${genreFilters.has(genre.id) ? ' active' : ''}`);
     button.type = 'button';
+    colourGenre(button, genre.name);
     button.setAttribute('aria-pressed', String(genreFilters.has(genre.id)));
     button.title = `${genre.count} albums include this genre on at least one track`;
-    button.append(node('span', genre.name), node('span', String(genre.count), 'genre-count'));
+    button.append(node('span', '', 'genre-swatch'), node('span', genre.name), node('span', String(genre.count), 'genre-count'));
     button.addEventListener('click', () => {
       genreFilters.has(genre.id) ? genreFilters.delete(genre.id) : genreFilters.add(genre.id);
       albumPage = 0; renderGenreTags(); renderAlbums();
@@ -45,6 +46,22 @@ function node(tag, text, className) {
   if (text !== undefined) element.textContent = text;
   if (className) element.className = className;
   return element;
+}
+function colourGenre(element, genre) {
+  element.style.setProperty('--genre-hue', browser.hue(genre));
+  element.classList.add('genre-colour');
+}
+function genreChips(values, className = 'album-genres', prefix = '') {
+  const line = node('div', undefined, className);
+  if (prefix) line.append(node('span', prefix));
+  if (!values.length) { line.append(node('span', 'No genres', 'no-genres')); return line; }
+  for (const genre of values) {
+    const chip = node('span', undefined, 'genre-chip');
+    colourGenre(chip, genre);
+    chip.append(node('span', '', 'genre-swatch'), node('span', genre));
+    line.append(chip);
+  }
+  return line;
 }
 function genreText(values) { return values.length ? values.join(' · ') : 'No genres'; }
 function visible() { return currentPage().items; }
@@ -99,7 +116,7 @@ function renderAlbums() {
     const info = node('div', undefined, 'album-info');
     const title = node('div', album.name, 'album-name'); title.title = album.name;
     info.append(title, node('div', `${album.artist} · ${album.count} tracks`, 'album-meta'));
-    const genres = node('div', genreText(album.genres), 'album-genres'); genres.title = genreText(album.genres); info.append(genres);
+    const genres = genreChips(album.genres); genres.title = genreText(album.genres); info.append(genres);
     if (album.mixed) info.append(node('div', 'Mixed track genres', 'album-note'));
     if (album.readonly_count) info.append(node('div', `${album.readonly_count} files need write permission`, 'album-note'));
     label.append(checkbox, info); grid.append(label);
@@ -126,8 +143,8 @@ function renderTracks() {
     const item = node('div', undefined, 'track');
     item.append(node('div', row.title || row.path.split('/').pop(), 'track-name'), node('div', row.path, 'track-path'));
     if (plan) {
-      item.append(node('div', `Before: ${genreText(row.before)}`, 'genre-line'), node('div', `After: ${genreText(row.after)}`, 'genre-line after'));
-    } else item.append(node('div', genreText(row.genres), 'genre-line'));
+      item.append(genreChips(row.before, 'genre-line', 'Before: '), genreChips(row.after, 'genre-line after', 'After: '));
+    } else item.append(genreChips(row.genres, 'genre-line'));
     fragment.append(item);
   }
   if (!rows.length) fragment.append(node('p', plan ? 'No files need changing.' : 'Select albums to view their track genres.', 'empty'));

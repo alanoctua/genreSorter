@@ -110,3 +110,15 @@ select { color:var(--ink); background:var(--input); border:1px solid var(--borde
 .artist-albums { display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:6px; padding:4px 12px 12px; }
 input:disabled { opacity:.45; }
 @media(max-width:550px) { .artist-albums { grid-template-columns:1fr; } }
+/* Genre colours are stable visual cues; selection remains a separate state. */
+.genre-colour { --genre-tone:hsl(var(--genre-hue) 62% 43%); --genre-tint:hsl(var(--genre-hue) 62% 94%); --genre-border:hsl(var(--genre-hue) 42% 78%); }
+.genre-swatch { display:inline-block; flex:0 0 8px; width:8px; height:8px; border-radius:50%; background:var(--genre-tone); }
+.genre-tag.genre-colour { background:var(--genre-tint); border-color:var(--genre-border); color:var(--ink); }
+.genre-tag.genre-colour.active { border-color:var(--accent); outline:2px solid var(--accent); outline-offset:0; }
+.genre-tag.active::after { content:'✓'; font-weight:700; color:var(--accent); }
+.genre-chip { display:inline-flex; align-items:center; gap:5px; padding:2px 6px; margin:2px 4px 2px 0; border-radius:5px; background:var(--genre-tint); border:1px solid var(--genre-border); color:var(--ink); font-size:11px; line-height:1.4; max-width:100%; }
+.genre-chip > span:last-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.album-genres { display:flex; flex-wrap:wrap; white-space:normal; overflow:visible; }
+.genre-line { display:flex; flex-wrap:wrap; align-items:center; gap:3px; }
+.no-genres { color:var(--muted); }
+@media(prefers-color-scheme:dark) { .genre-colour { --genre-tone:hsl(var(--genre-hue) 64% 70%); --genre-tint:hsl(var(--genre-hue) 28% 22%); --genre-border:hsl(var(--genre-hue) 30% 38%); } }

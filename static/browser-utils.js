@@ -39,7 +39,20 @@
     }
     return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
-  const utilities = {key, catalog, matches, filter, page, artists};
+  // Stable pseudorandom hue: identical genre names keep a colour across sessions/devices.
+  // This encodes no musical similarity; unrelated genres may have nearby hues.
+  function hue(genre) {
+    let hash = 2166136261;
+    for (const character of key(genre)) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    hash ^= hash >>> 16;
+    hash = Math.imul(hash, 0x85ebca6b);
+    hash ^= hash >>> 13;
+    return Number(((hash >>> 0) / 4294967296 * 360).toFixed(2));
+  }
+  const utilities = {key, catalog, matches, filter, page, artists, hue};
   if (typeof module !== 'undefined' && module.exports) module.exports = utilities;
   else globalThis.GenreBrowser = utilities;
 })();

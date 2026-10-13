@@ -52,6 +52,12 @@ The album area fills the main window with a compact grid nested under collapsibl
 
 **Select page** selects the displayed page. **Select all matching** selects every album matching the chosen genres and album search, across all pages. Genre highlights do not select albums for editing automatically. Existing album selections remain selected even when hidden by a filter; **Clear selection** resets them. Preview and Save use the selected albums and retain the existing batch add/remove/alias workflow. A single save supports up to 20,000 tracks.
 
+## Genre colours
+
+Every genre has a stable, pseudorandom colour based on its name. The same name, ignoring case and surrounding whitespace, keeps the same colour on filter buttons, album labels and track previews, across rescans and browser sessions. Colours affect the interface only and are not written into music tags. Active filters remain marked separately with an outline and checkmark.
+
+Colours currently do **not** represent musical similarity. Nearby colours can occur by chance. Related-genre families would need an explicit grouping rule or mapping; no genre families are guessed automatically.
+
 ## Replace all previous genres
 
 Check **Remove previous genres** and enter the full replacement list in **New genres**. Every selected track loses all of its previous genres and receives only that list. The Remove names field is disabled and ignored in this mode. Leaving New genres empty clears every genre from selected tracks. Unchecking the option restores the normal add/remove behavior. Nothing is written until Preview and Save.

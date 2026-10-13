@@ -46,3 +46,12 @@ test('albums nest under artist groups while retaining each album identity', () =
   assert.equal(groups.at(-1).name, 'Unknown artist');
   assert.equal(browser.artists(browser.filter(input, 'Second', new Set(), 'any', false))[0].albums[0].id, 'b');
 });
+
+test('genre colours stay stable across name case/spacing and span the colour wheel', () => {
+  assert.equal(browser.hue(' Jazz '), browser.hue('jazz'));
+  assert.equal(browser.hue('City Pop'), browser.hue('City Pop'));
+  const hues = ['Jazz', 'Rock', 'City Pop', 'Soul', 'Classical', 'Folk'].map(browser.hue);
+  assert.equal(new Set(hues).size, hues.length);
+  assert.ok(hues.every(hue => Number.isFinite(hue) && hue >= 0 && hue <= 360));
+  assert.ok(Math.max(...hues) - Math.min(...hues) > 180);
+});
