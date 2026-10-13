@@ -1,7 +1,7 @@
 services:
-  genresorter:
-    build: .
-    container_name: genresorter
+  genreSorter:
+    image: "${GENRESORTER_IMAGE:?Set GENRESORTER_IMAGE to your published ghcr.io image}"
+    container_name: genreSorter
     user: "${PUID:?Set PUID in .env}:${PGID:?Set PGID in .env}"
     ports:
       - "${BIND_ADDRESS:-0.0.0.0}:${PORT:-8787}:8787"

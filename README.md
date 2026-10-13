@@ -2,25 +2,47 @@
 
 Browser app for viewing and bulk editing album genres. FLAC, MP3 and M4A supported. Choose a mounted music folder, scan, multi-select albums, add/remove genres or normalize aliases, preview every affected track, then Save genres. Saves modify genre tags on the chosen server files directly. The music library is not copied or re-encoded.
 
-## Install on OMV
+## Install the published image on OMV
 
-1. Put this entire folder on the server, for example `/srv/appdata/genresorter`.
-2. Run `id tuna` on the server. Note the numeric `uid` and `gid` of the account with write access to your music.
+1. Put only `compose.yaml` and `.env.example` in a server folder, for example `/srv/appdata/genreSorter`. The source code stays on GitHub and the image is downloaded from GHCR.
+2. Run `id YOUR_SERVER_USER` on the server. Note the numeric `uid` and `gid` of the account with write access to your music.
 3. In the project folder, run `cp .env.example .env` and edit `.env`:
    - `MUSIC_PATH`: full server path to your music folder, not the Mac `/Volumes/...` path.
+   - `GENRESORTER_IMAGE`: `ghcr.io/YOUR_GITHUB_USERNAME/genresorter:latest`, using the actual owner of the published repository. This is a template until the image has been built and made public.
    - `PUID` and `PGID`: the numbers from step 2. The container uses these IDs; it does not change file ownership or permissions.
    - `APP_PASSWORD`: choose a password. The placeholder is refused at startup.
    - `PORT`: 8787 by default; change if already occupied.
 4. Run:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
 5. Open `http://YOUR-SERVER-IP:8787` in your browser. Username **admin**, password from `.env`.
 6. Choose a folder within `/music` or press **Scan music** for the mounted root. Select albums, type genres, **Preview changes**, then **Save genres**.
 
 The default address listens on your server's network interfaces. Keep this tool on your home network. You can set `BIND_ADDRESS` to your server's LAN IP to bind only that interface.
+
+To update the installed image:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+## Publish from GitHub
+
+Create a public GitHub repository named `genreSorter` and put this folder's contents at the repository root, including `.github/workflows/docker.yml` and `.env.example`. Do not upload your filled `.env`, cache or music. The workflow runs the file tests first and then publishes `ghcr.io/OWNER/genresorter:latest` for Linux AMD64 and ARM64. It uses GitHub's automatically supplied `GITHUB_TOKEN`; you do not need to create a registry password for the workflow.
+
+After the first successful publish, open the resulting package in your GitHub profile's **Packages** page, select **Package settings**, and change its visibility to **Public**. GitHub container packages start private. A public package can be pulled on OMV without a GitHub login. Only after publishing should you use the image in compose.
+
+Push a version tag such as `v0.1.0` to publish the matching `0.1.0` image tag. Use a numbered version tag in `.env` if you want to choose when to upgrade, or an image digest if you need an exact build.
+
+For development or building before the image is published, keep the entire source folder and run:
+
+```bash
+docker compose -f compose.build.yaml up -d --build
+```
 
 ## Genres and scanning
 
@@ -37,8 +59,8 @@ Open **skipped files / errors** to see the actual failing filename and reason. `
 Inspect the configured container account and a failing file without modifying it:
 
 ```bash
-docker compose exec genresorter id
-docker compose exec genresorter stat '/music/Artist/Album/01 Track.flac'
+docker compose exec genreSorter id
+docker compose exec genreSorter stat '/music/Artist/Album/01 Track.flac'
 ```
 
 Set `PUID`/`PGID` to the appropriate account in `.env`, then apply a configuration change with `docker compose up -d`. After correcting host permissions, rescan and preview again. Cache permission errors do not block scanning or music tag writes.
