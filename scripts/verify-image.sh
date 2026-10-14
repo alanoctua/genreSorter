@@ -12,4 +12,5 @@ assert server.APP_VERSION == os.environ["EXPECTED_VERSION"], "Image contains an 
 assert os.environ.get("APP_REVISION") == os.environ["EXPECTED_REVISION"], "Image contains an unexpected commit"
 print("Verified app", server.APP_VERSION, "commit", os.environ["APP_REVISION"])
 '
+docker image rm "$image_ref"
 done
