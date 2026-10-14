@@ -13,8 +13,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
 import tags
+import musicbrainz
 
-APP_VERSION = "0.3.4"
+APP_VERSION = "0.3.7"
 
 
 class Problem(Exception):
@@ -203,6 +204,20 @@ class Library:
                 self.busy = False
                 self.revision += 1
 
+    def selected_artist(self, selected):
+        if not isinstance(selected, list) or not selected or len(selected) > 10000 or any(not isinstance(s, str) for s in selected):
+            raise Problem("Select albums by one artist to suggest genres")
+        with self.lock:
+            if self.busy:
+                raise Problem("Wait for scanning or saving to finish", 409)
+            chosen = set(selected)
+            albums = [album for album in self.albums if album["id"] in chosen]
+            if len(albums) != len(chosen):
+                raise Problem("The album selection changed. Select the artist again.", 409)
+            if len({tags.key(album["artist"]) for album in albums}) != 1:
+                raise Problem("Select albums by just one artist to suggest genres")
+            return albums[0]["artist"]
+
     def preview(self, payload):
         selected = payload.get("albums")
         if not isinstance(selected, list) or not selected or len(selected) > 10000 or any(not isinstance(s, str) for s in selected):
@@ -338,7 +353,7 @@ class Handler(BaseHTTPRequestHandler):
             if route.path == "/api/state":
                 self.respond(self.server.library.snapshot(query.get("since", [None])[0]))
             elif route.path == "/api/config":
-                self.respond({"version": APP_VERSION, "aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
+                self.respond({"version": APP_VERSION, "revision": os.environ.get("APP_REVISION", "unknown"), "aliases": tags.DEFAULT_ALIASES, "uid": os.getuid(), "gid": os.getgid()})
             elif route.path == "/api/folders":
                 self.respond(self.server.library.folders(query.get("path", [""])[0]))
             elif route.path in {"/", "/app.js", "/browser-utils.js", "/style.css", "/logo.png", "/favicon.ico", "/favicon-16x16.png", "/favicon-32x32.png", "/apple-touch-icon.png"}:
@@ -377,9 +392,16 @@ class Handler(BaseHTTPRequestHandler):
                 self.respond(self.server.library.preview(body))
             elif route == "/api/write":
                 self.respond(self.server.library.write(body.get("token")), 202)
+            elif route in {"/api/musicbrainz/search", "/api/musicbrainz/genres"}:
+                artist = self.server.library.selected_artist(body.get("albums"))
+                result = (self.server.musicbrainz.search(artist) if route.endswith("/search")
+                          else self.server.musicbrainz.genres(body.get("mbid")))
+                self.respond({**result, "local_artist": artist})
             else:
                 raise Problem("Not found", 404)
         except Problem as exc:
+            self.respond({"error": str(exc)}, exc.status)
+        except musicbrainz.MusicBrainzError as exc:
             self.respond({"error": str(exc)}, exc.status)
         except (ValueError, TypeError) as exc:
             self.respond({"error": str(exc)}, 400)
@@ -392,6 +414,7 @@ def make_server(root, data, password, port=8787, host="0.0.0.0"):
         raise ValueError("Set APP_PASSWORD in .env before starting genreSorter")
     server = ThreadingHTTPServer((host, port), Handler)
     server.library = Library(root, data)
+    server.musicbrainz = musicbrainz.Client(APP_VERSION)
     server.password = password
     server.static = Path(__file__).parent / "static"
     return server

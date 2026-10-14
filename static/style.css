@@ -129,3 +129,21 @@ input:disabled { opacity:.45; }
 
 .artist-checkbox { margin:0 10px 0 5px; vertical-align:middle; cursor:pointer; }
 #albumCount { text-align:right; line-height:1.6; }
+
+/* Keep examples faint and suggestions above the rest of the editor. */
+#add::placeholder,#remove::placeholder { color:var(--muted); opacity:.45; }
+.genre-entry { position:relative; min-width:0; }
+.genre-entry > input { margin-top:6px; }
+.genre-suggestions { position:absolute; z-index:10; top:100%; left:0; right:0; margin-top:5px; padding:4px; max-height:240px; overflow:auto; background:var(--panel); border:1px solid var(--border); border-radius:8px; box-shadow:0 8px 24px #0002; }
+.genre-suggestion { display:flex; align-items:center; gap:8px; padding:9px 10px; border-radius:5px; cursor:pointer; color:var(--ink); font-size:12px; overflow-wrap:anywhere; }
+.genre-suggestion[aria-selected=true],.genre-suggestion:hover { background:var(--select); }
+.genre-suggestion .count { margin-left:auto; white-space:nowrap; font-size:10px; }
+.genre-suggestions .hint { margin:5px 8px; }
+.suggest-tools { display:flex; gap:10px; align-items:center; margin:12px 0; }
+.suggest-tools .hint { margin:0; overflow-wrap:anywhere; }
+.suggest-genre-list { display:flex; flex-direction:column; gap:8px; max-height:280px; overflow:auto; margin:12px 0; }
+.suggest-genre { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid var(--border); border-radius:6px; color:var(--ink); }
+.suggest-genre .count { margin-left:auto; }
+#musicbrainzDialog .dialog-actions { gap:10px; }
+#artistMatches button { white-space:normal; overflow-wrap:anywhere; }
+#suggestSource a { color:var(--accent); }

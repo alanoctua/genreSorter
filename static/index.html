@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>genreSorter</title>
-  <link rel="icon" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48" href="/favicon.ico?v=0.3.4">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=0.3.4">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=0.3.4">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=0.3.4">
+  <link rel="icon" type="image/vnd.microsoft.icon" sizes="16x16 32x32 48x48" href="/favicon.ico?v=0.3.7">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=0.3.7">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=0.3.7">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=0.3.7">
   <link rel="stylesheet" href="/style.css">
   <script src="/browser-utils.js" defer></script>
   <script src="/app.js" defer></script>
@@ -17,7 +17,7 @@
     <div class="brand"><img class="app-logo" src="/logo.png" alt="" width="64" height="64"><div><h1>genreSorter<span>server</span></h1><p>View and amend your music genres</p></div></div>
     <div class="toolbar"><button id="chooseFolder">Choose folder</button><button id="scan" class="primary" title="Shift-click to reread every tag">Scan music</button></div>
   </header>
-  <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="buildVersion" class="count">v0.3.4</span><span id="identity"></span></div>
+  <div class="statusbar"><span id="activity" class="indicator"></span><span id="status" role="status">Connecting…</span><span id="buildVersion" class="count">v0.3.7</span><span id="identity"></span></div>
   <div id="requestError" class="error-banner hidden" role="alert"></div>
   <main>
     <aside class="library">
@@ -42,11 +42,12 @@
     <section class="editor">
       <div class="section-title"><h2>Bulk edit</h2><span id="folderLabel" class="folder-label">/music</span></div>
       <p class="muted">Edit selected albums. Preview every track before saving.</p>
+      <div id="suggestTools" class="suggest-tools hidden"><button id="suggestGenres" type="button">Suggest genres</button><span id="suggestArtist" class="hint"></span></div>
       <div class="entry-grid">
-        <label><span id="addLabel">Add genres</span><input id="add" type="text" placeholder="Japanese Jazz, City Pop" autocomplete="off"></label>
-        <label>Remove genres<input id="remove" type="text" placeholder="Jazz, Unknown" autocomplete="off"></label>
+        <div class="genre-entry"><label for="add"><span id="addLabel">Add genres</span></label><input id="add" type="text" placeholder="Japanese Jazz, City Pop" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="addSuggestions" aria-describedby="genreInputHelp"><div id="addSuggestions" class="genre-suggestions hidden" role="listbox" aria-label="Genres to add"></div></div>
+        <div class="genre-entry"><label for="remove">Remove genres</label><input id="remove" type="text" placeholder="Jazz, Unknown" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="removeSuggestions" aria-describedby="genreInputHelp"><div id="removeSuggestions" class="genre-suggestions hidden" role="listbox" aria-label="Genres to remove"></div></div>
       </div>
-      <p class="hint">Separate several genres with commas or semicolons.</p>
+      <p id="genreInputHelp" class="hint">Type to find existing genres or enter a new name. Separate several genres with commas or semicolons.</p>
       <label class="toggle"><input id="replaceGenres" type="checkbox">Remove previous genres</label>
       <p id="replaceHelp" class="hint">Unchecked: keep each track’s current genres and add or remove specific names.</p>
       <label class="toggle"><input id="normalize" type="checkbox">Normalize genre names on selected albums</label>
@@ -60,6 +61,14 @@
       <p id="cacheNote" class="hint"></p>
     </section>
   </main>
+  <dialog id="musicbrainzDialog" aria-labelledby="musicbrainzTitle">
+    <div class="section-title"><h2 id="musicbrainzTitle">MusicBrainz genre suggestions</h2><button id="closeSuggestions" type="button">Close</button></div>
+    <p id="suggestStatus" class="muted" role="status"></p>
+    <p id="suggestError" class="error-banner hidden" role="alert"></p>
+    <div id="artistMatches" class="folder-list"></div>
+    <div id="suggestResults" class="hidden"><p id="suggestSource" class="hint"></p><div id="suggestGenreList" class="suggest-genre-list"></div><p class="hint">Artist genres may not suit every album. Choose which suggestions to add, then review the track preview before saving.</p></div>
+    <div class="dialog-actions"><button id="backToArtists" type="button" class="hidden">Other artist matches</button><button id="useSuggestions" type="button" class="primary" disabled>Add to genre field</button></div>
+  </dialog>
   <dialog id="folderDialog">
     <div class="section-title"><h2>Music folder</h2><button id="closeFolder" aria-label="Close folder browser">Close</button></div>
     <p id="browsePath" class="muted">/music</p>

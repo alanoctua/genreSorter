@@ -1,6 +1,7 @@
 services:
   genreSorter:
     image: "${GENRESORTER_IMAGE:?Set GENRESORTER_IMAGE to your published ghcr.io image}"
+    pull_policy: always
     container_name: genreSorter
     user: "${PUID:?Set PUID in .env}:${PGID:?Set PGID in .env}"
     ports:

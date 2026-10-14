@@ -39,6 +39,28 @@
     }
     return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
   }
+  // Complete only the genre under the caret, preserving the other names in the field.
+  function genreContext(value, caret = value.length) {
+    caret = Math.max(0, Math.min(caret, value.length));
+    let start = caret, end = caret;
+    while (start && !/[,;\n]/.test(value[start - 1])) start--;
+    while (end < value.length && !/[,;\n]/.test(value[end])) end++;
+    const query = value.slice(start, end).trim();
+    const used = new Set((value.slice(0, start) + ',' + value.slice(end)).split(/[,;\n]/).map(key).filter(Boolean));
+    return {start, end, query, used};
+  }
+  function genreSuggestions(catalog, value, caret) {
+    const context = genreContext(value, caret), query = key(context.query);
+    if (!query) return [];
+    return catalog.filter(genre => genre.id.includes(query) && !context.used.has(genre.id))
+      .sort((a, b) => Number(!a.id.startsWith(query)) - Number(!b.id.startsWith(query)) || a.name.localeCompare(b.name));
+  }
+  function completeGenre(value, caret, name) {
+    const {start, end} = genreContext(value, caret);
+    const prefix = value.slice(0, start), suffix = value.slice(end);
+    const insertion = (prefix ? ' ' : '') + name.trim() + (suffix ? '' : ', ');
+    return {value: prefix + insertion + suffix, caret: prefix.length + insertion.length};
+  }
   // Stable pseudorandom hue: identical genre names keep a colour across sessions/devices.
   // This encodes no musical similarity; unrelated genres may have nearby hues.
   function hue(genre) {
@@ -52,7 +74,7 @@
     hash ^= hash >>> 13;
     return Number(((hash >>> 0) / 4294967296 * 360).toFixed(2));
   }
-  const utilities = {key, catalog, matches, filter, page, artists, hue};
+  const utilities = {key, catalog, matches, filter, page, artists, hue, genreContext, genreSuggestions, completeGenre};
   if (typeof module !== 'undefined' && module.exports) module.exports = utilities;
   else globalThis.GenreBrowser = utilities;
 })();

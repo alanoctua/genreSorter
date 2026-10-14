@@ -5,6 +5,92 @@ let selected = new Set(), plan = null, pending = false, browsing = '';
 let genreFilters = new Set(), genreCatalog = [], albumPage = 0, trackPage = 0;
 const collapsedArtists = new Set();
 const browser = GenreBrowser;
+let suggestionSession = null, suggestionRequest = 0, suggestionBusy = false;
+function selectedArtist() {
+  const groups = browser.artists(state.albums.filter(album => selected.has(album.id)));
+  return groups.length === 1 && groups[0].albums.length === selected.size ? groups[0] : null;
+}
+function suggestionValid(session) {
+  return suggestionSession === session && session.generation === state.generation
+    && !state.busy && session.albums.length === selected.size && session.albums.every(id => selected.has(id));
+}
+function suggestionError(message) {
+  $('suggestError').textContent = message;
+  $('suggestError').classList.toggle('hidden', !message);
+}
+function renderArtistMatches() {
+  $('artistMatches').classList.remove('hidden');
+  $('suggestResults').classList.add('hidden');
+  $('backToArtists').classList.add('hidden');
+  $('useSuggestions').disabled = true;
+  $('suggestStatus').textContent = `Choose the MusicBrainz artist matching ${suggestionSession.name}.`;
+  const fragment = document.createDocumentFragment();
+  for (const artist of suggestionSession.matches) {
+    const detail = [artist.description, artist.type, artist.area || artist.country].filter(Boolean).join(' · ');
+    const button = node('button', `${artist.name}${detail ? ' — ' + detail : ''}`);
+    button.type = 'button';
+    button.addEventListener('click', () => loadArtistGenres(artist));
+    fragment.append(button);
+  }
+  if (!suggestionSession.matches.length) fragment.append(node('p', 'No artist matches found. You can still enter your own genres.', 'hint'));
+  $('artistMatches').replaceChildren(fragment);
+}
+async function startSuggestions() {
+  const artist = selectedArtist();
+  if (!artist || state.busy || pending || suggestionBusy) return;
+  const session = {name: artist.name, albums: [...selected], generation: state.generation, matches: []};
+  suggestionSession = session;
+  const request = ++suggestionRequest;
+  suggestionBusy = true; controls(); suggestionError('');
+  $('suggestStatus').textContent = `Searching MusicBrainz for ${artist.name}…`;
+  $('artistMatches').replaceChildren();
+  $('artistMatches').classList.remove('hidden');
+  $('suggestResults').classList.add('hidden');
+  $('backToArtists').classList.add('hidden');
+  $('useSuggestions').disabled = true;
+  $('musicbrainzDialog').showModal();
+  try {
+    const result = await api('/api/musicbrainz/search', {albums: session.albums});
+    if (request !== suggestionRequest) return;
+    if (!suggestionValid(session)) throw new Error('The album selection or scan changed. Close and suggest again.');
+    session.matches = result.artists;
+    renderArtistMatches();
+  } catch (exc) { if (request === suggestionRequest) { $('suggestStatus').textContent = 'Lookup could not finish.'; suggestionError(exc.message); } }
+  finally { if (request === suggestionRequest) { suggestionBusy = false; controls(); } }
+}
+async function loadArtistGenres(artist) {
+  const session = suggestionSession;
+  if (!session || suggestionBusy) return;
+  const request = ++suggestionRequest;
+  suggestionBusy = true; controls(); suggestionError('');
+  $('artistMatches').classList.add('hidden');
+  $('backToArtists').classList.add('hidden');
+  $('suggestStatus').textContent = `Looking up genres for ${artist.name}…`;
+  try {
+    const result = await api('/api/musicbrainz/genres', {albums: session.albums, mbid: artist.id});
+    if (request !== suggestionRequest) return;
+    if (!suggestionValid(session)) throw new Error('The album selection or scan changed. Close and suggest again.');
+    const fragment = document.createDocumentFragment();
+    result.genres.forEach((genre, index) => {
+      const label = node('label', undefined, 'suggest-genre');
+      const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.value = genre.name;
+      checkbox.checked = index < 5 && genre.votes > 0;
+      checkbox.addEventListener('change', () => { $('useSuggestions').disabled = !$('suggestGenreList').querySelector('input:checked'); });
+      const chip = genreChips([genre.name], 'genre-line');
+      label.append(checkbox, chip, node('span', `${genre.votes} vote${genre.votes === 1 ? '' : 's'}`, 'count'));
+      fragment.append(label);
+    });
+    if (!result.genres.length) fragment.append(node('p', 'MusicBrainz has no genres for this artist. You can enter your own names or try another artist match.', 'hint'));
+    $('suggestGenreList').replaceChildren(fragment);
+    const link = node('a', `MusicBrainz: ${result.artist.name}`);
+    link.href = `https://musicbrainz.org/artist/${result.artist.id}`; link.target = '_blank'; link.rel = 'noopener noreferrer';
+    $('suggestSource').replaceChildren(link);
+    $('suggestResults').classList.remove('hidden');
+    $('suggestStatus').textContent = `${result.genres.length} genre suggestions for ${result.artist.name}.`;
+    $('useSuggestions').disabled = !$('suggestGenreList').querySelector('input:checked');
+  } catch (exc) { if (request === suggestionRequest) { $('suggestStatus').textContent = 'Genre lookup could not finish.'; suggestionError(exc.message); } }
+  finally { if (request === suggestionRequest) { suggestionBusy = false; $('backToArtists').classList.remove('hidden'); controls(); } }
+}
 function matching(album) { return browser.matches(album, genreFilters, $('genreMode').value); }
 function albumResults() { return browser.filter(state.albums, $('search').value, genreFilters, $('genreMode').value, $('onlyMatches').checked); }
 function currentPage() { return browser.page(albumResults(), albumPage, Number($('pageSize').value)); }
@@ -64,6 +150,87 @@ function genreChips(values, className = 'album-genres', prefix = '') {
   return line;
 }
 function genreText(values) { return values.length ? values.join(' · ') : 'No genres'; }
+function genreAutocomplete(id) {
+  const input = $(id), list = $(`${id}Suggestions`);
+  let options = [], active = -1;
+  function close() {
+    list.classList.add('hidden');
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    active = -1;
+  }
+  function highlight(index) {
+    active = index;
+    [...list.children].forEach((option, position) => option.setAttribute('aria-selected', String(position === active)));
+    if (active >= 0) {
+      input.setAttribute('aria-activedescendant', list.children[active].id);
+      list.children[active].scrollIntoView?.({block: 'nearest'});
+    } else input.removeAttribute('aria-activedescendant');
+  }
+  function choose(index) {
+    const option = options[index];
+    if (!option) return;
+    const result = browser.completeGenre(input.value, input.selectionStart, option.name);
+    input.value = result.value;
+    input.focus();
+    input.setSelectionRange(result.caret, result.caret);
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+    close();
+  }
+  function update() {
+    if (document.activeElement !== input || input.disabled) { close(); return; }
+    const context = browser.genreContext(input.value, input.selectionStart);
+    if (!context.query || input.selectionStart !== input.selectionEnd) { close(); return; }
+    options = browser.genreSuggestions(genreCatalog, input.value, input.selectionStart);
+    if (!options.length && id === 'add' && !context.used.has(browser.key(context.query))
+        && !genreCatalog.some(genre => genre.id === browser.key(context.query))) {
+      options = [{name: context.query, isNew: true}];
+    }
+    const fragment = document.createDocumentFragment();
+    options.forEach((genre, index) => {
+      const option = node('div', undefined, 'genre-suggestion');
+      option.id = `${id}Suggestion${index}`;
+      option.setAttribute('role', 'option');
+      option.setAttribute('aria-selected', 'false');
+      if (genre.isNew) option.append(node('span', `Use new genre “${genre.name}”`));
+      else {
+        colourGenre(option, genre.name);
+        option.append(node('span', '', 'genre-swatch'), node('span', genre.name), node('span', `${genre.count.toLocaleString()} album${genre.count === 1 ? '' : 's'}`, 'count'));
+      }
+      option.addEventListener('pointerdown', event => event.preventDefault());
+      option.addEventListener('click', () => choose(index));
+      fragment.append(option);
+    });
+    if (!options.length) fragment.append(node('p', 'No matching genres.', 'hint'));
+    list.replaceChildren(fragment);
+    active = -1;
+    input.removeAttribute('aria-activedescendant');
+    list.classList.remove('hidden');
+    input.setAttribute('aria-expanded', 'true');
+  }
+  input.addEventListener('input', update);
+  input.addEventListener('focus', update);
+  input.addEventListener('click', update);
+  input.addEventListener('blur', close);
+  input.addEventListener('keydown', event => {
+    if (event.isComposing) return;
+    if (event.key === 'Escape') { if (!list.classList.contains('hidden')) event.preventDefault(); close(); }
+    else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      if (list.classList.contains('hidden')) update();
+      if (!options.length || list.classList.contains('hidden')) return;
+      event.preventDefault();
+      highlight(active < 0 ? (event.key === 'ArrowDown' ? 0 : options.length - 1)
+        : (active + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length);
+    } else if (event.key === 'Enter' && !list.classList.contains('hidden') && options.length) {
+      event.preventDefault(); choose(active < 0 ? 0 : active);
+    } else if (event.key === 'Tab') close();
+  });
+  input.addEventListener('keyup', event => {
+    if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) update();
+  });
+  return {update, close};
+}
+const genreInputs = ['add', 'remove'].map(genreAutocomplete);
 function visible() { return currentPage().items; }
 function controls() {
   const busy = state.busy || pending;
@@ -74,6 +241,10 @@ function controls() {
   $('selectedCount').textContent = `${selected.size} selected`;
   $('changeCount').textContent = plan ? `${plan.count} files will change` : '';
   $('activity').classList.toggle('busy', busy);
+  const artist = selectedArtist();
+  $('suggestTools').classList.toggle('hidden', !artist);
+  $('suggestGenres').disabled = busy || suggestionBusy;
+  $('suggestArtist').textContent = artist ? `For ${artist.name}` : '';
 }
 function invalidate() {
   if (plan) { plan = null; renderTracks(); }
@@ -183,7 +354,7 @@ async function refresh() {
   $('status').textContent = state.status;
   $('folderLabel').textContent = '/music' + (state.folder && state.folder !== '.' ? '/' + state.folder : '');
   $('scan').textContent = state.albums.length ? 'Rescan' : 'Scan music';
-  if (changed) { genreCatalog = browser.catalog(state.albums); renderGenreTags(); renderAlbums(); renderTracks(); renderErrors(); }
+  if (changed) { genreCatalog = browser.catalog(state.albums); renderGenreTags(); renderAlbums(); renderTracks(); renderErrors(); genreInputs.forEach(input => input.update()); }
   controls();
 }
 async function polling() {
@@ -211,6 +382,27 @@ async function browse(path) {
   } catch (exc) { error(exc.message); }
 }
 $('scan').addEventListener('click', event => scan(state.folder, event.shiftKey));
+$('suggestGenres').addEventListener('click', startSuggestions);
+$('closeSuggestions').addEventListener('click', () => $('musicbrainzDialog').close());
+$('musicbrainzDialog').addEventListener('close', () => { suggestionSession = null; suggestionRequest++; suggestionBusy = false; controls(); });
+$('backToArtists').addEventListener('click', () => { if (suggestionSession && !suggestionBusy) { suggestionError(''); renderArtistMatches(); } });
+$('useSuggestions').addEventListener('click', () => {
+  if (!suggestionSession || suggestionBusy) return;
+  if (!suggestionValid(suggestionSession)) { suggestionError('The album selection or scan changed. Close and suggest again.'); return; }
+  const chosen = [...$('suggestGenreList').querySelectorAll('input:checked')].map(input => input.value);
+  if (!chosen.length) return;
+  const names = new Map(genreCatalog.map(genre => [genre.id, genre.name]));
+  const values = $('add').value.split(/[,;\n]/).map(value => value.trim()).filter(Boolean);
+  const seen = new Set(values.map(browser.key));
+  for (const genre of chosen) {
+    const name = names.get(browser.key(genre)) || genre;
+    if (!seen.has(browser.key(name))) { values.push(name); seen.add(browser.key(name)); }
+  }
+  $('add').value = values.join(', ');
+  $('add').dispatchEvent(new Event('input', {bubbles: true}));
+  $('musicbrainzDialog').close();
+  $('add').focus();
+});
 $('chooseFolder').addEventListener('click', () => browse(state.folder));
 $('closeFolder').addEventListener('click', () => $('folderDialog').close());
 $('rootFolder').addEventListener('click', () => browse(''));
@@ -231,6 +423,7 @@ for (const id of ['add', 'remove', 'aliases']) $(id).addEventListener('input', i
 $('replaceGenres').addEventListener('change', () => {
   const replace = $('replaceGenres').checked;
   $('remove').disabled = replace;
+  genreInputs.forEach(input => input.close());
   $('addLabel').textContent = replace ? 'New genres' : 'Add genres';
   $('replaceHelp').textContent = replace ? 'Checked: delete every old genre and use only the new genres above. Leave New genres empty to clear all genres. Preview before saving.' : 'Unchecked: keep each track’s current genres and add or remove specific names.';
   invalidate();
@@ -252,7 +445,7 @@ $('save').addEventListener('click', async () => {
   finally { pending = false; controls(); }
 });
 (async () => {
-  try { const config = await api('/api/config'); $('buildVersion').textContent = config.version ? `v${config.version}` : 'Server version unknown'; $('aliases').value = config.aliases; $('identity').textContent = `Server user: UID ${config.uid} · GID ${config.gid}`; }
+  try { const config = await api('/api/config'); $('buildVersion').textContent = config.version ? `v${config.version}${config.revision && config.revision !== 'unknown' ? ' · ' + config.revision.slice(0, 7) : ''}` : 'Server version unknown'; $('aliases').value = config.aliases; $('identity').textContent = `Server user: UID ${config.uid} · GID ${config.gid}`; }
   catch (exc) { error(exc.message); }
   polling();
 })();

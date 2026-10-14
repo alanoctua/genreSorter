@@ -64,3 +64,26 @@ test('500 album pages retain all results including the final partial page', () =
   assert.equal(last.items.length, 201);
   assert.deepEqual([...first.items, ...second.items, ...last.items].map(a=>a.id), many.map(a=>a.id));
 });
+
+test('genre suggestions narrow on each character, include substring matches, and ignore case', () => {
+  const catalog = browser.catalog([{genres: ['Hip Hop', 'Chillout', 'House', 'Jazz', 'Chicago House']}]);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'H').map(g => g.name), ['Hip Hop', 'House', 'Chicago House', 'Chillout']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'hi').map(g => g.name), ['Hip Hop', 'Chicago House', 'Chillout']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'HIP').map(g => g.name), ['Hip Hop']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'Brand new genre'), []);
+  assert.deepEqual(browser.genreSuggestions(catalog, ''), []);
+});
+
+test('suggestions use the genre under the caret and avoid names already entered', () => {
+  const catalog = browser.catalog([{genres: ['Jazz', 'Hip Hop', 'House']}]);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'Jazz; H').map(g => g.name), ['Hip Hop', 'House']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'House, H').map(g => g.name), ['Hip Hop']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'Jazz, H, House', 7).map(g => g.name), ['Hip Hop']);
+  assert.deepEqual(browser.genreSuggestions(catalog, 'Jazz\nH').map(g => g.name), ['Hip Hop', 'House']);
+});
+
+test('choosing a suggestion preserves other genres and allows entering the next genre', () => {
+  assert.deepEqual(browser.completeGenre('Jazz, Hi', 8, 'Hip Hop'), {value: 'Jazz, Hip Hop, ', caret: 15});
+  assert.deepEqual(browser.completeGenre('Jazz; Hi; House', 8, 'Hip Hop'), {value: 'Jazz; Hip Hop; House', caret: 13});
+  assert.deepEqual(browser.completeGenre('New sound', 9, 'New sound'), {value: 'New sound, ', caret: 11});
+});
