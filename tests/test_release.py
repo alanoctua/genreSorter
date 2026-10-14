@@ -44,8 +44,11 @@ elif args and args[0] == "run":
         self.temp.cleanup()
 
     def run_script(self, name):
-        return subprocess.run(['bash', str(ROOT / '.github/scripts' / name)], cwd=self.folder,
-                              env=self.env, text=True, capture_output=True)
+        return subprocess.run(
+            ['bash', str(ROOT / 'scripts' / name)],
+            cwd=self.folder, env=self.env,
+            text=True, capture_output=True
+        )
 
     def recorded(self):
         return [json.loads(line) for line in self.calls.read_text().splitlines()] if self.calls.exists() else []
